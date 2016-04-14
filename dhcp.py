@@ -1,3 +1,8 @@
+'''
+CREATE ON April 14,2016
+author:EggyCheng
+e-mail:eggy@csie.io
+'''
 import argparse, socket, struct
 from uuid import getnode as get_mac
 from random import randint
