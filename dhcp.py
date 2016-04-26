@@ -33,7 +33,8 @@ class DHCPDiscover:
         packet += b'\x01'   #Hardware type: Ethernet
         packet += b'\x06'   #Hardware address length: 6
         packet += b'\x00'   #Hops: 0 
-        packet += self.transactionID       #Transaction ID
+        #packet += self.transactionID       #Transaction ID
+        packet += b'\xec\x02b2'
         packet += b'\x00\x00'    #Seconds elapsed: 0
         packet += b'\x80\x00'   #Bootp flags: 0x8000 (Broadcast) + reserved flags
         packet += b'\x00\x00\x00\x00'   #Client IP address: 0.0.0.0
@@ -100,7 +101,8 @@ class DHCPRequest:
         packet += b'\x01'   #Hardware type: Ethernet
         packet += b'\x06'   #Hardware address length: 6
         packet += b'\x00'   #Hops: 0 
-        packet += self.transactionID       #Transaction ID
+        #packet += self.transactionID       #Transaction ID
+        packet += b'\xec\x02b3'
         packet += b'\x00\x00'    #Seconds elapsed: 0
         packet += b'\x80\x00'   #Bootp flags: 0x8000 (Broadcast) + reserved flags
         packet += b'\x00\x00\x00\x00'   #Client IP address: 0.0.0.0
@@ -162,13 +164,12 @@ def server():
 	print('Listening for datagrams at {}'.format(sock.getsockname()))
 	while True:
 		data, address = sock.recvfrom(BUFSIZE)
-		#print ('The client at {} says: {!r}'.format(address, data))
-		print ("Receving DHCP Discovery from " + address[0])
+		print ('The client at {} send DISCOVER packet: {!r}'.format(address, data))
 		offerPacket = DHCPOffer()
 		sock.sendto(offerPacket.buildPacket(data), ('255.255.255.255', 68))
 		RquestData, address = sock.recvfrom(BUFSIZE)
-		#print ('The client at {} says: {!r}'.format(address, RquestData))
-		print ("Receving DHCP Request from " + address[0])
+		print ('The client at {} send Request packet: {!r}'.format(address, RquestData))
+		print ("======================End Line======================")
 		ackPacket = DHCPAck()
 		sock.sendto(ackPacket.buildPacket(RquestData), ('255.255.255.255', 68))
 			
@@ -180,18 +181,19 @@ def client():
 	sock.sendto(discoverPacket.buildPacket(), ('255.255.255.255', 67))
 	while True:
 		data, address = sock.recvfrom(BUFSIZE)
-		if address[0] == "192.168.174.129":
-			break
+		print ('The DHCP server at {} send OFFER packet: {!r}'.format(address, data))
+		break
 	requestPacket = DHCPRequest()
 	sock.sendto(requestPacket.buildPacket(), ('255.255.255.255', 67))
 	while True:
 		ackdata, address = sock.recvfrom(BUFSIZE)
-		if address[0] == "192.168.174.129":
-			break
+		print ('The DHCP server at {} send ACK packet: {!r}'.format(address, ackdata))
+		break
 	offerIP = '.'.join(map(lambda x:str(x), ackdata[16:20]))
 	nextServerIP = '.'.join(map(lambda x:str(x), ackdata[20:24]))
-	print ("I found the DHCP IP address is:" + nextServerIP)
+	print ("===================================================")
 	print ("I have been assigned IP:" + offerIP)
+	print ("===================================================")
 
 
 if __name__ == '__main__':
